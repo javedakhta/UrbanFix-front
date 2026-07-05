@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@/config/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { signOut } from "firebase/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,11 +18,35 @@ export default function LoginPage() {
     console.log("Attempting Login with:", { email, password });
 
     // TODO: Plug in your fetch("https://your-api.com/login") here
-    const fakeSuccess = true;
+    try {
+      const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredentials.user;
 
-    if (fakeSuccess) {
+      const token = await user.getIdToken();
+      console.log("Successfully grabbed token:", token);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Backend rejected login: ${errorText}`);
+      }
+      console.log("Backend login successful:");
+
+      // 5. If everything passed, route to the dashboard!
       router.push("/");
+
+    } catch (err) {
+      console.log("Failed to Login", err);
+      await signOut(auth);
     }
+
   };
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { auth } from "../../config/firebase";
@@ -10,8 +10,6 @@ export default function SignupPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
-
 
     const router = useRouter();
 
@@ -29,7 +27,7 @@ export default function SignupPage() {
             const token = await userCredential.user.getIdToken();
 
             // 3. Send the token AND the extra user data to your Express backend
-            const response = await fetch('http://127.0.0.1:8787/users', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -39,9 +37,11 @@ export default function SignupPage() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create user profile in backend');
+                // 🕵️‍♂️ READ THE ACTUAL SERVER RESPONSE HERE
+                const errorText = await response.text();
+                console.error("The server rejected the request because:", errorText);
+                throw new Error(`Backend Error: ${response.status} - ${errorText}`);
             }
-
             const data = await response.json();
             console.log("Signup complete! Backend says:", data);
             router.push("/login");
