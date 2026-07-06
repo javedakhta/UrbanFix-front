@@ -42,8 +42,8 @@ export default function SignupPage() {
                 console.error("The server rejected the request because:", errorText);
                 throw new Error(`Backend Error: ${response.status} - ${errorText}`);
             }
-            const data = await response.json();
-            console.log("Signup complete! Backend says:", data);
+            // const data = await response.json();
+            // console.log("Signup complete! Backend says:", data);
             router.push("/login");
 
         } catch (error) {

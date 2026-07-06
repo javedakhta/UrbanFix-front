@@ -2,7 +2,7 @@
 import { AuthProvider } from "../context/AuthContext";
 
 export const metadata = {
-  title: "My Awesome App",
+  title: "Urban Fix",
 };
 
 export default function RootLayout({ children }) {
