@@ -11,6 +11,18 @@ const AuthContext = createContext({});
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [dbUser, setDbUser] = useState(null);
+
+    const loginUser = async (userData) => {
+        try {
+
+            setDbUser(userData);
+
+            console.log("User successfully logged in!");
+        } catch (error) {
+            console.error("Login failed:", error);
+        }
+    };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
