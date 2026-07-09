@@ -1,4 +1,4 @@
-import { getAllServices } from '@/lib/api';
+import { getAllServices } from './lib/api';
 
 const CATEGORIES = ['Cleaning', 'Plumbing', 'Electrical', 'Salon & Spa', 'Appliance Repair', 'Painting', 'Pest Control', 'Food Delivery'];
 
