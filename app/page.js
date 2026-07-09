@@ -1,14 +1,14 @@
-import { getAllServices } from './lib/api';
+// import { getAllServices } from './lib/api';
 
 const CATEGORIES = ['Cleaning', 'Plumbing', 'Electrical', 'Salon & Spa', 'Appliance Repair', 'Painting', 'Pest Control', 'Food Delivery'];
 
 export default async function HomePage() {
   let services = [];
-  try {
-    services = await getAllServices();
-  } catch {
-    services = []; // backend not ready yet / no services added — fall back gracefully
-  }
+  // try {
+  //   services = await getAllServices();
+  // } catch {
+  //   services = []; // backend not ready yet / no services added — fall back gracefully
+  // }
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
