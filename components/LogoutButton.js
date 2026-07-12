@@ -23,14 +23,8 @@ export default function LogoutButton() {
     return (
         <button
             onClick={handleLogout}
-            style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#d9534f",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer"
-            }}
+            className="px-4 py-2 rounded-full text-white bg-red-500 hover:bg-red-600 transition-colors text-sm font-medium"
+
         >
             Log Out
         </button>
