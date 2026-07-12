@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/config/firebase";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { useAuthCheck } from "@/context/AuthContext";
 
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const router = useRouter();
+    const { loginUser } = useAuthCheck();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -38,6 +40,10 @@ export default function LoginPage() {
                 throw new Error(`Backend rejected login: ${errorText}`);
             }
             console.log("Backend login successful:");
+
+            const dbUser = await response.json();
+
+            loginUser(dbUser);
 
             // 5. If everything passed, route to the dashboard!
             router.push("/");
