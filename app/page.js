@@ -23,8 +23,8 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* <Navbar />
-      <LogoutButton /> */}
+      <Navbar />
+      {/* <LogoutButton /> */}
       <main className="flex-grow">
         <Hero />
         <Categories categories={categories} subCategories={subCategories} />
