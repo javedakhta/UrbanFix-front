@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { fetchCategories, createCategory, createSubCategory, createCity } from '@/app/lib/api';
+import { fetchCategories, createCategory, createSubCategory, createCity, uploadImageToR2 } from '@/app/lib/api';
 import { useAuthCheck } from '@/context/AuthContext';
 
 export default function MasterDataPage() {
@@ -9,14 +9,19 @@ export default function MasterDataPage() {
 
     // States for inputs
     const [categoryName, setCategoryName] = useState('');
+    const [categoryImage, setCategoryImage] = useState(null); // NEW
+
     const [cityName, setCityName] = useState('');
+    const [cityImage, setCityImage] = useState(null); // NEW
+
     const [subCat, setSubCat] = useState({ category_id: '', name: '' });
+    const [subCatImage, setSubCatImage] = useState(null); // NEW
 
     // Loading & Status states
     const [loading, setLoading] = useState({ category: false, subCategory: false, city: false });
     const [message, setMessage] = useState({ text: '', type: '' });
 
-    // Fetch categories on load (needed for the Sub-Category dropdown)
+    // Fetch categories on load
     useEffect(() => {
         loadCategories();
     }, []);
@@ -40,9 +45,19 @@ export default function MasterDataPage() {
         setLoading(prev => ({ ...prev, category: true }));
         try {
             const token = await getToken();
-            const res = await createCategory(categoryName, token);
-            setCategories([...categories, res.category]); // Update dropdown instantly
+
+            // 1. Upload Image (if selected)
+            const imageUrl = await uploadImageToR2(categoryImage, token);
+
+            // 2. Create Category
+            const res = await createCategory(categoryName, imageUrl, token);
+            setCategories([...categories, res.category]);
+
+            // 3. Reset form
             setCategoryName('');
+            setCategoryImage(null);
+            e.target.reset(); // Clears the file input UI
+
             showMsg('Category added successfully', 'success');
         } catch (err) {
             showMsg(err.message, 'error');
@@ -56,8 +71,18 @@ export default function MasterDataPage() {
         setLoading(prev => ({ ...prev, subCategory: true }));
         try {
             const token = await getToken();
-            await createSubCategory(parseInt(subCat.category_id), subCat.name, token);
+
+            // 1. Upload Image
+            const imageUrl = await uploadImageToR2(subCatImage, token);
+
+            // 2. Create Sub-Category
+            await createSubCategory(parseInt(subCat.category_id), subCat.name, imageUrl, token);
+
+            // 3. Reset form
             setSubCat({ category_id: '', name: '' });
+            setSubCatImage(null);
+            e.target.reset();
+
             showMsg('Sub-category added successfully', 'success');
         } catch (err) {
             showMsg(err.message, 'error');
@@ -71,8 +96,18 @@ export default function MasterDataPage() {
         setLoading(prev => ({ ...prev, city: true }));
         try {
             const token = await getToken();
-            await createCity(cityName, token);
+
+            // 1. Upload Image
+            const imageUrl = await uploadImageToR2(cityImage, token);
+
+            // 2. Create City
+            await createCity(cityName, imageUrl, token);
+
+            // 3. Reset form
             setCityName('');
+            setCityImage(null);
+            e.target.reset();
+
             showMsg('City added successfully', 'success');
         } catch (err) {
             showMsg(err.message, 'error');
@@ -102,6 +137,12 @@ export default function MasterDataPage() {
                             <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} required
                                 className="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder="e.g. Cleaning" />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-700">Image (Optional)</label>
+                            <input type="file" accept="image/jpeg, image/png, image/webp"
+                                onChange={(e) => setCategoryImage(e.target.files[0])}
+                                className="w-full mt-1 border rounded-lg px-3 py-2 text-sm focus:outline-none" />
                         </div>
                         <button type="submit" disabled={loading.category}
                             className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium disabled:opacity-50">
@@ -133,6 +174,12 @@ export default function MasterDataPage() {
                                 className="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder="e.g. Sofa Cleaning" />
                         </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-700">Image (Optional)</label>
+                            <input type="file" accept="image/jpeg, image/png, image/webp"
+                                onChange={(e) => setSubCatImage(e.target.files[0])}
+                                className="w-full mt-1 border rounded-lg px-3 py-2 text-sm focus:outline-none" />
+                        </div>
                         <button type="submit" disabled={loading.subCategory}
                             className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium disabled:opacity-50">
                             {loading.subCategory ? 'Adding...' : 'Add Sub-Category'}
@@ -149,6 +196,12 @@ export default function MasterDataPage() {
                             <input type="text" value={cityName} onChange={(e) => setCityName(e.target.value)} required
                                 className="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder="e.g. New York" />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-700">Image (Optional)</label>
+                            <input type="file" accept="image/jpeg, image/png, image/webp"
+                                onChange={(e) => setCityImage(e.target.files[0])}
+                                className="w-full mt-1 border rounded-lg px-3 py-2 text-sm focus:outline-none" />
                         </div>
                         <button type="submit" disabled={loading.city}
                             className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium disabled:opacity-50">
