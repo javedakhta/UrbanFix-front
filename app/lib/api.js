@@ -17,9 +17,35 @@ async function authedRequest(path, token, options = {}) {
     return res.json();
 }
 
-// export function getMyProfile(token) {
-//     return authedRequest('/users/me', token);
-// }
+// --- NEW: Helper function to upload images to R2 ---
+export async function uploadImageToR2(file, token) {
+    if (!file) return null;
+
+    const base64String = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = (error) => reject(error);
+    });
+
+    const uploadRes = await fetch(`${BASE_URL}/upload-image`, {
+        method: "POST",
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            imageBase64: base64String,
+            mimeType: file.type,
+            originalName: file.name
+        }),
+    });
+
+    const uploadData = await uploadRes.json();
+    if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
+
+    return uploadData.imageUrl;
+}
 
 export function getAllServices(token) {
     return authedRequest('/services', token);
@@ -29,49 +55,47 @@ export function createService(payload, token) {
     return authedRequest('/services', token, { method: 'POST', body: JSON.stringify(payload) });
 }
 
-// export function deleteService(id, token) {
-//     return authedRequest(`/services/${id}`, token, { method: 'DELETE' });
-// }
-
 export async function fetchCategories() {
     const res = await fetch(`${BASE_URL}/services/categories`);
     if (!res.ok) throw new Error('Failed to fetch categories');
     return res.json();
 }
 
-export async function createCategory(name, token) {
+// Updated to accept imageUrl
+export async function createCategory(name, imageUrl, token) {
     const res = await fetch(`${BASE_URL}/services/categories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, imageUrl }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to create category');
     return data;
 }
 
-export async function createSubCategory(category_id, name, token) {
+// Updated to accept imageUrl
+export async function createSubCategory(category_id, name, imageUrl, token) {
     const res = await fetch(`${BASE_URL}/services/sub-categories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ category_id, name }),
+        body: JSON.stringify({ category_id, name, imageUrl }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to create sub-category');
     return data;
 }
 
-export async function createCity(name, token) {
+// Updated to accept imageUrl
+export async function createCity(name, imageUrl, token) {
     const res = await fetch(`${BASE_URL}/services/cities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, imageUrl }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to create city');
     return data;
 }
-
 
 export async function fetchSubCategories() {
     const res = await fetch(`${BASE_URL}/services/sub-categories`);
@@ -85,18 +109,11 @@ export async function fetchCities() {
     return res.json();
 }
 
-// @/app/lib/api.js
-
 export async function getServiceById(id) {
-    const res = await fetch(`${BASE_URL}/services/${id}`, {
-        // Optional: If you want Next.js to revalidate this data periodically
-        // next: { revalidate: 60 } 
-    });
-
+    const res = await fetch(`${BASE_URL}/services/${id}`);
     if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to fetch service details');
     }
-
     return res.json();
 }
